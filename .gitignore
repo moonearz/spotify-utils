@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.py[cod]
+*$py.class
+
+# Vim
+*.swp
+*.swo
+*.swn
+*~
+
+# Vim
+*.swp
+*.swo
+*.swn
+*~
+
+# Other
+.venv/
+venv/
+.vscode/
+.idea/
+.env
+
+# macOS
+.DS_Store
+
+# Python packaging
+*egg-info/
+build/
+dist/
