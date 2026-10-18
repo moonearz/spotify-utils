@@ -6,7 +6,10 @@ build-backend = "setuptools.build_meta"
 name = "python-template"
 version = "0.1.0"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "spotipy",
+    "python-dotenv"
+]
 
 [project.optional-dependencies]
 dev = [
@@ -14,6 +17,9 @@ dev = [
     "ruff==0.16.3",
     "prek",
 ]
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.ruff]
 line-length = 88

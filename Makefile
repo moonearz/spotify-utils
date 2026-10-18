@@ -1,10 +1,25 @@
-.PHONY: setup
+PROJECT := $(notdir $(CURDIR))
+VENV ?= $(HOME)/.venvs/$(PROJECT)
+
+PYTHON := $(VENV)/bin/python
+PIP := $(VENV)/bin/pip
+PREK := $(VENV)/bin/prek
+
+.PHONY: setup check test run clean
 
 setup:
-	python3.13 -m venv .venv
-	.venv/bin/pip install -e ".[dev]"
-	.venv/bin/prek install
-
+	python3.13 -m venv $(VENV)
+	$(PIP) install -e ".[dev]"
+	$(PREK) install
 
 check:
-	.venv/bin/prek run --all-files
+	$(PREK) run --all-files
+
+test:
+	$(PYTHON) -m pytest
+
+run:
+	$(PYTHON) -m spotify_utils.main
+
+clean:
+	rm -rf build dist *.egg-info
