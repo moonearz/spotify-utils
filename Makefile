@@ -22,4 +22,4 @@ run:
 	$(PYTHON) -m spotify_utils.main
 
 clean:
-	rm -rf build dist *.egg-info
+	rm -rf build dist src/*.egg-info *.egg-info
