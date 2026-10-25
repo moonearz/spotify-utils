@@ -5,10 +5,13 @@ PYTHON := $(VENV)/bin/python
 PIP := $(VENV)/bin/pip
 PREK := $(VENV)/bin/prek
 
-.PHONY: setup check test run clean
+.PHONY: setup setup-dev check test run clean
 
 setup:
 	python3.13 -m venv $(VENV)
+	$(PIP) install -e .
+
+setup-dev: setup
 	$(PIP) install -e ".[dev]"
 	$(PREK) install
 
