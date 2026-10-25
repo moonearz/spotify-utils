@@ -25,8 +25,7 @@ def get_user_playlists(sp):
 
 
 def create_new_playlist(sp, new_name, songs):
-    playlist = sp.user_playlist_create(
-        user=sp.current_user()["id"],
+    playlist = sp.current_user_playlist_create(
         name=new_name,
         public=False,
     )
