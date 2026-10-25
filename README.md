@@ -1,10 +1,10 @@
-Spotify Utilities
+# Spotify Utilities
 
-A (soon to be) collection of Python utilities for managing Spotify things through the API.
+A (soon-to-be) collection of Python utilities for managing Spotify things through the API.
 
-Features
+## Features
 
-Playlist Filtering
+### Playlist Filtering
 
 Create a new playlist by selecting which songs to keep from an existing playlist.
 
@@ -15,7 +15,7 @@ Create a new playlist by selecting which songs to keep from an existing playlist
 
 The original playlist is not modified.
 
-Prerequisites
+## Prerequisites
 
 Before installing, make sure you have:
 
@@ -24,14 +24,14 @@ Before installing, make sure you have:
 * Make
 * Spotify API credentials
 
-Installation
+## Installation
 
-1. Clone the repository
+### 1. Clone the repository
 
 git clone https://github.com/moonearz/spotify-utils.git
 cd spotify-utils
 
-2. Install dependencies
+### 2. Install dependencies
 
 make setup
 
@@ -41,7 +41,7 @@ This creates a Python virtual environment at:
 
 It also installs the application and its required dependencies.
 
-3. Configure Spotify authentication
+### 3. Configure Spotify authentication
 
 Create a Spotify application
 
@@ -54,6 +54,6 @@ Use these credentials to setup your .env file, using the example
 
 You may need to authenticate the first time your run the program
 
-4. Run the application
+### 4. Run the application
 
 make run
