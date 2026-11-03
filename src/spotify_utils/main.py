@@ -2,6 +2,7 @@ import questionary
 from rich.console import Console
 
 from spotify_utils.client import get_spotify_client
+from spotify_utils.history import load_history, most_played_artists
 from spotify_utils.playlists import (
     create_new_playlist,
     filter_songs,
@@ -9,6 +10,16 @@ from spotify_utils.playlists import (
 )
 
 console = Console()
+
+
+def most_played_artists_command():
+    history = load_history()
+    artists = most_played_artists(history)
+
+    console.print("\n[bold]Most played artists:[/bold]\n")
+
+    for rank, (artist, count) in enumerate(artists, start=1):
+        console.print(f"{rank}. {artist}: {count} listens")
 
 
 def filter_playlist_command(sp):
@@ -63,6 +74,7 @@ def main():
             "Spotify Utilities",
             choices=[
                 "Filter a playlist",
+                "Most played artists",
                 "Quit",
             ],
         ).ask()
@@ -72,6 +84,9 @@ def main():
 
         if command == "Filter a playlist":
             filter_playlist_command(sp)
+
+        if command == "Most played artists":
+            most_played_artists_command()
 
 
 if __name__ == "__main__":

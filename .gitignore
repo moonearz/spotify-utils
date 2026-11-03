@@ -35,3 +35,6 @@ venv/
 *egg-info/
 build/
 dist/
+
+# personal data
+data/
