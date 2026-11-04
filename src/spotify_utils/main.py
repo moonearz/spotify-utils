@@ -2,6 +2,7 @@ import questionary
 from rich.console import Console
 
 from spotify_utils.client import get_spotify_client
+from spotify_utils.config import has_api_credentials, has_listening_history
 from spotify_utils.history import load_history, most_played_artists
 from spotify_utils.playlists import (
     create_new_playlist,
@@ -64,28 +65,38 @@ def filter_playlist_command(sp):
 
 
 def main():
-    sp = get_spotify_client()
-
-    user = sp.current_user()
-    console.print(f"Logged in as: {user['display_name']}")
-
     while True:
-        command = questionary.select(
-            "Spotify Utilities",
-            choices=[
-                "Filter a playlist",
-                "Most played artists",
-                "Quit",
-            ],
-        ).ask()
+        has_api_creds = has_api_credentials()
+        has_history = has_listening_history()
 
-        if command is None or command == "Quit":
+        choices = [
+            questionary.Choice(
+                "Filter playlist",
+                value="filter playlist",
+                disabled=None if has_api_creds else "Spotify API credentials required",
+            ),
+            questionary.Choice(
+                "Most played artists",
+                value="most played artists",
+                disabled=None
+                if has_history
+                else "Listening history in data dir required",
+            ),
+            questionary.Choice(
+                "Quit",
+                value="quit",
+            ),
+        ]
+        command = questionary.select("Spotify Utilities", choices=choices).ask()
+
+        if command is None or command == "quit":
             break
 
-        if command == "Filter a playlist":
+        if command == "filter a playlist":
+            sp = get_spotify_client()
             filter_playlist_command(sp)
 
-        if command == "Most played artists":
+        if command == "most played artists":
             most_played_artists_command()
 
 
