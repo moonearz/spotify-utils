@@ -2,7 +2,11 @@ import json
 from collections import Counter
 from datetime import date
 
-from spotify_utils.config import DATA_DIR, DEFAULT_NUM_ARTISTS
+from spotify_utils.config import (
+    DATA_DIR,
+    DEFAULT_NUM_RESULTS,
+    MIN_NUM_TRACKS,
+)
 from spotify_utils.history.config import ListeningMetric
 
 
@@ -46,7 +50,7 @@ def artist_counts(history, metric):
     return counter
 
 
-def most_played_artists(history, metric, n=DEFAULT_NUM_ARTISTS):
+def most_played_artists(history, metric, n=DEFAULT_NUM_RESULTS):
     counts = artist_counts(history, metric)
     return counts.most_common(n)
 
@@ -54,7 +58,7 @@ def most_played_artists(history, metric, n=DEFAULT_NUM_ARTISTS):
 def artist_distribution(
     history,
     metric,
-    n=DEFAULT_NUM_ARTISTS,
+    n=DEFAULT_NUM_RESULTS,
 ):
     if n < 1:
         raise ValueError("n must be > 0")
@@ -67,3 +71,33 @@ def artist_distribution(
         top["Other"] = remaining
 
     return top
+
+
+def most_skipped_songs(history, n=DEFAULT_NUM_RESULTS):
+    counts = Counter()
+    skips = Counter()
+
+    for record in history:
+        track = (
+            record.get("master_metadata_track_name"),
+            record.get("master_metadata_album_artist_name"),
+        )
+
+        if track is None:
+            continue
+
+        counts[track] += 1
+        if record.get("skipped"):
+            skips[track] += 1
+
+    ratios = {
+        track: skips[track] / counts[track]
+        for track in counts
+        if counts[track] >= MIN_NUM_TRACKS
+    }
+
+    return sorted(
+        ratios.items(),
+        key=lambda item: item[1],
+        reverse=True,
+    )[:n]

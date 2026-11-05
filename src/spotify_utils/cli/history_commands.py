@@ -8,8 +8,13 @@ from spotify_utils.history.analytics import (
     filter_history,
     load_history,
     most_played_artists,
+    most_skipped_songs,
 )
-from spotify_utils.history.config import HistoryOptions, ListeningMetric
+from spotify_utils.history.config import (
+    DEFAULT_NUM_RESULTS,
+    HistoryOptions,
+    ListeningMetric,
+)
 from spotify_utils.visualization import plot_artist_distribution
 
 console = Console()
@@ -21,15 +26,19 @@ def edit_history_options(options):
             options.start_date.isoformat() if options.start_date else "All time"
         )
         metrics = " ,".join(sorted(metric.value for metric in options.metrics))
+        num_results = options.num_results
 
         choices = [
             "Change start date",
             "Change metric(s)",
+            "Change number of results",
             "Reset options",
             "Back",
         ]
         choice = questionary.select(
-            f"History settings\nStart date: {start_date}\nMetrics: {metrics}",
+            f"History settings\nStart date: {start_date}"
+            f"\nMetrics: {metrics}"
+            f"\nNumber of results: {num_results}",
             choices=choices,
         ).ask()
 
@@ -72,9 +81,27 @@ def edit_history_options(options):
             elif selected == []:
                 print("Select at least one metric")
 
+        elif choice == "Change number of results":
+            value = questionary.text(
+                "Number of results:",
+                default=str(options.num_results),
+            ).ask()
+
+            if value is None:
+                continue
+
+            try:
+                n = int(value)
+                if n < 1:
+                    raise ValueError
+                options.num_results = n
+            except ValueError:
+                console.print("Enter a number > 0")
+
         elif choice == "Reset options":
             options.start_date = None
             options.metrics = {ListeningMetric.TIME}
+            options.num_results = DEFAULT_NUM_RESULTS
 
 
 def history_menu():
@@ -89,6 +116,10 @@ def history_menu():
         questionary.Choice(
             title="Listening statistics",
             value="listening_statistics",
+        ),
+        questionary.Choice(
+            title="Most skipped songs",
+            value="most_skipped_songs",
         ),
         questionary.Choice(
             title="Change Settings",
@@ -118,10 +149,13 @@ def history_menu():
         if util == "listening_statistics":
             artist_distribution_command(filtered_history, options)
 
+        if util == "most_skipped_songs":
+            most_skipped_song_command(filtered_history, options)
+
 
 def artist_distribution_command(history, options):
     for metric in sorted(options.metrics):
-        artist_dist = artist_distribution(history, metric)
+        artist_dist = artist_distribution(history, metric, options.num_results)
 
         console.print(f"\nMost played artists by {metric.value}:\n")
         plot_artist_distribution(artist_dist)
@@ -129,7 +163,7 @@ def artist_distribution_command(history, options):
 
 def most_played_artists_command(history, options):
     for metric in sorted(options.metrics):
-        artists = most_played_artists(history, metric)
+        artists = most_played_artists(history, metric, options.num_results)
 
         console.print(f"\n[bold]Most played artists by {metric.value}:[/bold]\n")
 
@@ -138,3 +172,11 @@ def most_played_artists_command(history, options):
                 console.print(f"{rank}. {artist}: {count / 3_600_000:.1f} hours")
             else:
                 console.print(f"{rank}. {artist}: {count} listens")
+
+
+def most_skipped_song_command(history, options):
+    most_skipped = most_skipped_songs(history, options.num_results)
+
+    console.print("\n[bold]Most skipped songs:[/bold]\n")
+    for rank, ((track, artist), ratio) in enumerate(most_skipped, start=1):
+        console.print(f"{rank}. {track} by {artist}: {ratio * 100:2f}")
