@@ -1,9 +1,7 @@
 import json
 from collections import Counter
-from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DATA_DIR = PROJECT_ROOT / "data"
+from spotify_utils.config import DATA_DIR, DEFAULT_NUM_ARTISTS
 
 
 def load_history(audio_only=True):
@@ -17,7 +15,7 @@ def load_history(audio_only=True):
     return history
 
 
-def most_played_artists(history, n=20):
+def most_played_artists(history, n=DEFAULT_NUM_ARTISTS):
     counts = Counter()
 
     for record in history:
@@ -31,7 +29,7 @@ def most_played_artists(history, n=20):
 
 def artist_distribution(
     history,
-    n=50,
+    n=DEFAULT_NUM_ARTISTS,
 ):
     if n < 1:
         raise ValueError("n must be > 0")
