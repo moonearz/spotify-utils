@@ -2,7 +2,7 @@ import json
 from collections import Counter
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DATA_DIR = PROJECT_ROOT / "data"
 
 
@@ -17,7 +17,7 @@ def load_history(audio_only=True):
     return history
 
 
-def most_played_artists(history, n=10):
+def most_played_artists(history, n=20):
     counts = Counter()
 
     for record in history:
@@ -31,7 +31,7 @@ def most_played_artists(history, n=10):
 
 def artist_distribution(
     history,
-    n=10,
+    n=50,
 ):
     if n < 1:
         raise ValueError("n must be > 0")
