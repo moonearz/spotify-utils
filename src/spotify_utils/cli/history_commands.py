@@ -1,7 +1,7 @@
 import questionary
 from rich.console import Console
 
-from spotify_utils.history.history import (
+from spotify_utils.history.analytics import (
     artist_distribution,
     load_history,
     most_played_artists,
