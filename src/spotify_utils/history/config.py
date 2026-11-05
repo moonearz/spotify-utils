@@ -12,5 +12,5 @@ class ListeningMetric(StrEnum):
 class HistoryOptions:
     start_date: date | None = None
     metrics: set[ListeningMetric] = field(
-        default_factory=lambda: {ListeningMetric.PLAYS}
+        default_factory=lambda: {ListeningMetric.TIME}
     )

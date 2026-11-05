@@ -1,7 +1,9 @@
 import json
 from collections import Counter
+from datetime import date
 
 from spotify_utils.config import DATA_DIR, DEFAULT_NUM_ARTISTS
+from spotify_utils.history.config import ListeningMetric
 
 
 def load_history(audio_only=True):
@@ -15,34 +17,52 @@ def load_history(audio_only=True):
     return history
 
 
-def most_played_artists(history, n=DEFAULT_NUM_ARTISTS):
-    counts = Counter()
+def filter_history(history, start_date):
+    if start_date is None:
+        return history
+
+    return [
+        record
+        for record in history
+        if date.fromisoformat(record["ts"][:10]) >= start_date
+    ]
+
+
+def artist_counts(history, metric):
+    counter = Counter()
 
     for record in history:
         artist = record.get("master_metadata_album_artist_name")
 
-        if artist is not None:
-            counts[artist] += 1
+        if artist is None:
+            continue
 
+        if metric == ListeningMetric.PLAYS:
+            counter[artist] += 1
+
+        elif metric == ListeningMetric.TIME:
+            counter[artist] += record.get("ms_played", 0)
+
+    return counter
+
+
+def most_played_artists(history, metric, n=DEFAULT_NUM_ARTISTS):
+    counts = artist_counts(history, metric)
     return counts.most_common(n)
 
 
 def artist_distribution(
     history,
+    metric,
     n=DEFAULT_NUM_ARTISTS,
 ):
     if n < 1:
         raise ValueError("n must be > 0")
-    counts = Counter()
 
-    for record in history:
-        artist = record.get("master_metadata_album_artist_name")
-
-        if artist is not None:
-            counts[artist] += 1
+    counts = artist_counts(history, metric)
 
     top = dict(counts.most_common(n))
-    remaining = counts.total() - sum(count for _, count in top.items())
+    remaining = counts.total() - sum(top.values())
     if remaining > 0:
         top["Other"] = remaining
 
