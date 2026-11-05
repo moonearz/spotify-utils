@@ -73,25 +73,35 @@ def artist_distribution(
     return top
 
 
+def normalize_track(track):
+    title, artist = track
+    return (
+        title.strip().casefold(),
+        artist.strip().casefold(),
+    )
+
+
 def most_skipped_songs(history, n=DEFAULT_NUM_RESULTS):
     counts = Counter()
     skips = Counter()
+    display_names = {}
 
     for record in history:
         track = (
             record.get("master_metadata_track_name"),
             record.get("master_metadata_album_artist_name"),
         )
-
-        if track is None:
+        if any(part is None for part in track):
             continue
 
-        counts[track] += 1
+        normalized_track = normalize_track(track)
+        counts[normalized_track] += 1
+        display_names.setdefault(normalized_track, track)
         if record.get("skipped"):
-            skips[track] += 1
+            skips[normalized_track] += 1
 
     ratios = {
-        track: skips[track] / counts[track]
+        display_names[track]: skips[track] / counts[track]
         for track in counts
         if counts[track] >= MIN_NUM_TRACKS
     }
