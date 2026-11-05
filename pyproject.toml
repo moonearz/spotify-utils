@@ -10,7 +10,9 @@ dependencies = [
     "spotipy",
     "python-dotenv",
     "questionary",
-    "rich"
+    "rich",
+    "plotly[express]",
+    "pandas",
 ]
 
 [project.optional-dependencies]

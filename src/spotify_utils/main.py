@@ -3,14 +3,21 @@ from rich.console import Console
 
 from spotify_utils.client import get_spotify_client
 from spotify_utils.config import has_api_credentials, has_listening_history
-from spotify_utils.history import load_history, most_played_artists
+from spotify_utils.history import artist_distribution, load_history, most_played_artists
 from spotify_utils.playlists import (
     create_new_playlist,
     filter_songs,
     get_user_playlists,
 )
+from spotify_utils.visualization import plot_artist_distribution
 
 console = Console()
+
+
+def artist_distribution_command():
+    history = load_history()
+    artist_dist = artist_distribution(history)
+    plot_artist_distribution(artist_dist)
 
 
 def most_played_artists_command():
@@ -83,6 +90,13 @@ def main():
                 else "Listening history in data dir required",
             ),
             questionary.Choice(
+                "Artist distribution",
+                value="artist distribution",
+                disabled=None
+                if has_history
+                else "Listening history in data dir required",
+            ),
+            questionary.Choice(
                 "Quit",
                 value="quit",
             ),
@@ -98,6 +112,9 @@ def main():
 
         if command == "most played artists":
             most_played_artists_command()
+
+        if command == "artist distribution":
+            artist_distribution_command()
 
 
 if __name__ == "__main__":

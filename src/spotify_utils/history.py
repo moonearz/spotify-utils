@@ -27,3 +27,25 @@ def most_played_artists(history, n=10):
             counts[artist] += 1
 
     return counts.most_common(n)
+
+
+def artist_distribution(
+    history,
+    n=10,
+):
+    if n < 1:
+        raise ValueError("n must be > 0")
+    counts = Counter()
+
+    for record in history:
+        artist = record.get("master_metadata_album_artist_name")
+
+        if artist is not None:
+            counts[artist] += 1
+
+    top = dict(counts.most_common(n))
+    remaining = counts.total() - sum(count for _, count in top.items())
+    if remaining > 0:
+        top["Other"] = remaining
+
+    return top
