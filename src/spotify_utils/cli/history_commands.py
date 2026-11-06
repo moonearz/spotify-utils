@@ -191,5 +191,9 @@ def most_skipped_song_command(history, options):
     paginate(
         most_skipped,
         page_size=options.page_size,
-        formatter=lambda item: f"{item[0][0]} by {item[0][1]}: {item[1]:.1%}",
+        formatter=lambda item: (
+            f"{item[1]['display_name'][0]} by "
+            f"{item[1]['display_name'][1]}: "
+            f"{item[1]['skip_rate']:.1%}"
+        ),
     )

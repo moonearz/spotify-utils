@@ -1,5 +1,7 @@
 import questionary
 
+from spotify_utils.utils import normalize_track
+
 
 def get_playlist_by_name(sp, target_name):
     results = sp.current_user_playlists()
@@ -22,6 +24,21 @@ def get_user_playlists(sp):
         results = sp.next(results) if results["next"] else None
 
     return playlists
+
+
+def get_playlist_tracks(sp, playlist_id):
+    tracks = []
+    results = sp.playlist_items(playlist_id)
+
+    while True:
+        tracks.extend(results["items"])
+
+        if not results["next"]:
+            break
+
+        results = sp.next(results)
+
+    return tracks
 
 
 def create_new_playlist(sp, new_name, songs):
@@ -67,3 +84,39 @@ def filter_songs(sp, playlist_id):
             break
 
     return kept_songs
+
+
+def filter_playlist_by_skip_rate(
+    tracks,
+    skip_stats,
+    threshold,
+    min_plays,
+):
+    kept = []
+    removed = []
+
+    for item in tracks:
+        track = item.get("item")
+
+        if not track or not track.get("artists") or track.get("type") != "track":
+            continue
+
+        normalized_track = normalize_track(
+            (
+                track["name"],
+                track["artists"][0]["name"],
+            )
+        )
+
+        stats = skip_stats.get(normalized_track)
+
+        if (
+            stats is not None
+            and stats["plays"] >= min_plays
+            and stats["skip_rate"] < threshold
+        ):
+            kept.append(item)
+        else:
+            removed.append(item)
+
+    return kept, removed

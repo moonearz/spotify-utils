@@ -5,9 +5,9 @@ from datetime import date
 from spotify_utils.config import (
     DATA_DIR,
     DEFAULT_PAGE_SIZE,
-    MIN_NUM_TRACKS,
 )
 from spotify_utils.history.config import ListeningMetric
+from spotify_utils.utils import normalize_track
 
 
 def load_history(audio_only=True):
@@ -73,15 +73,7 @@ def artist_distribution(
     return top
 
 
-def normalize_track(track):
-    title, artist = track
-    return (
-        title.strip().casefold(),
-        artist.strip().casefold(),
-    )
-
-
-def most_skipped_songs(history):
+def song_skip_stats(history):
     counts = Counter()
     skips = Counter()
     display_names = {}
@@ -94,20 +86,32 @@ def most_skipped_songs(history):
         if any(part is None for part in track):
             continue
 
+        skipped = record.get("skipped")
+        if skipped is None:
+            continue
+
         normalized_track = normalize_track(track)
         counts[normalized_track] += 1
         display_names.setdefault(normalized_track, track)
-        if record.get("skipped"):
+        if skipped:
             skips[normalized_track] += 1
 
-    ratios = {
-        display_names[track]: skips[track] / counts[track]
-        for track in counts
-        if counts[track] >= MIN_NUM_TRACKS
+    return {
+        normalized_track: {
+            "plays": counts[normalized_track],
+            "skips": skips[normalized_track],
+            "skip_rate": skips[normalized_track] / counts[normalized_track],
+            "display_name": display_names[normalized_track],
+        }
+        for normalized_track in counts
     }
 
+
+def most_skipped_songs(history):
+    stats = song_skip_stats(history)
+
     return sorted(
-        ratios.items(),
-        key=lambda item: item[1],
+        stats.items(),
+        key=lambda item: item[1]["skip_rate"],
         reverse=True,
     )
