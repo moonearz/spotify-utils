@@ -7,8 +7,8 @@ load_dotenv()
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = PROJECT_ROOT / "data"
-DEFAULT_NUM_RESULTS = 10
-MIN_NUM_TRACKS = 100
+DEFAULT_PAGE_SIZE = 10
+MIN_NUM_TRACKS = 20
 
 
 def has_api_credentials() -> bool:

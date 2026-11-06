@@ -4,7 +4,7 @@ from datetime import date
 
 from spotify_utils.config import (
     DATA_DIR,
-    DEFAULT_NUM_RESULTS,
+    DEFAULT_PAGE_SIZE,
     MIN_NUM_TRACKS,
 )
 from spotify_utils.history.config import ListeningMetric
@@ -50,15 +50,15 @@ def artist_counts(history, metric):
     return counter
 
 
-def most_played_artists(history, metric, n=DEFAULT_NUM_RESULTS):
+def most_played_artists(history, metric):
     counts = artist_counts(history, metric)
-    return counts.most_common(n)
+    return counts.most_common()
 
 
 def artist_distribution(
     history,
     metric,
-    n=DEFAULT_NUM_RESULTS,
+    n=DEFAULT_PAGE_SIZE,
 ):
     if n < 1:
         raise ValueError("n must be > 0")
@@ -81,7 +81,7 @@ def normalize_track(track):
     )
 
 
-def most_skipped_songs(history, n=DEFAULT_NUM_RESULTS):
+def most_skipped_songs(history):
     counts = Counter()
     skips = Counter()
     display_names = {}
@@ -110,4 +110,4 @@ def most_skipped_songs(history, n=DEFAULT_NUM_RESULTS):
         ratios.items(),
         key=lambda item: item[1],
         reverse=True,
-    )[:n]
+    )
