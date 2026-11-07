@@ -6,7 +6,7 @@ from spotify_utils.config import (
     DATA_DIR,
     DEFAULT_PAGE_SIZE,
 )
-from spotify_utils.history.config import ListeningMetric
+from spotify_utils.settings import ListeningMetric
 from spotify_utils.utils import normalize_track
 
 
@@ -21,14 +21,14 @@ def load_history(audio_only=True):
     return history
 
 
-def filter_history(history, start_date):
-    if start_date is None:
-        return history
-
+def filter_history(history, start_date=None, end_date=None):
     return [
         record
         for record in history
-        if date.fromisoformat(record["ts"][:10]) >= start_date
+        if (
+            (start_date is None or date.fromisoformat(record["ts"][:10]) >= start_date)
+            and (end_date is None or date.fromisoformat(record["ts"][:10]) <= end_date)
+        )
     ]
 
 

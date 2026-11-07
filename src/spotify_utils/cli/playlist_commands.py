@@ -4,7 +4,11 @@ from rich.console import Console
 from spotify_utils.cli.pagination import paginate
 from spotify_utils.client import get_spotify_client
 from spotify_utils.config import DEFAULT_MIN_PLAYS
-from spotify_utils.history.analytics import load_history, song_skip_stats
+from spotify_utils.history.analytics import (
+    filter_history,
+    load_history,
+    song_skip_stats,
+)
 from spotify_utils.playlists import (
     create_new_playlist,
     filter_playlist_by_skip_rate,
@@ -17,7 +21,7 @@ from spotify_utils.utils import format_playlist_track
 console = Console()
 
 
-def playlist_menu():
+def playlist_menu(options):
     sp = get_spotify_client()
 
     choices = [
@@ -42,7 +46,7 @@ def playlist_menu():
             filter_playlist_command(sp)
 
         if util == "filter_by_skips":
-            filter_playlist_by_skip_rate_command(sp)
+            filter_playlist_by_skip_rate_command(sp, options)
 
 
 def filter_playlist_command(sp):
@@ -86,7 +90,7 @@ def filter_playlist_command(sp):
     )
 
 
-def filter_playlist_by_skip_rate_command(sp):
+def filter_playlist_by_skip_rate_command(sp, options):
     playlists = get_user_playlists(sp)
 
     if not playlists:
@@ -144,7 +148,8 @@ def filter_playlist_by_skip_rate_command(sp):
         return
 
     history = load_history()
-    stats = song_skip_stats(history)
+    filtered_history = filter_history(history, options.start_date, options.end_date)
+    stats = song_skip_stats(filtered_history)
     tracks = get_playlist_tracks(sp, playlist["id"])
 
     kept, removed = filter_playlist_by_skip_rate(
