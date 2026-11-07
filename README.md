@@ -20,8 +20,6 @@ Two filtering methods are available:
 
 The original playlist is never modified.
 
-The original playlist is not modified.
-
 ### Spotify History Analytics
 
 Look at interesting data about your listening habits. I'm still adding more of these.
