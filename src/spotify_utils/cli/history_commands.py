@@ -1,3 +1,4 @@
+from datetime import datetime
 from functools import partial
 
 import questionary
@@ -6,10 +7,13 @@ from rich.console import Console
 from spotify_utils.cli.pagination import paginate
 from spotify_utils.history.analytics import (
     artist_distribution,
+    diversity_index,
     filter_history,
     load_history,
     most_played_artists,
     most_skipped_songs,
+    obsessiveness_index,
+    total_listening,
 )
 from spotify_utils.settings import (
     ListeningMetric,
@@ -28,12 +32,16 @@ def history_menu(options):
             value="most_played_artists",
         ),
         questionary.Choice(
-            title="Listening statistics",
+            title="Artist listening statistics",
             value="listening_statistics",
         ),
         questionary.Choice(
             title="Most skipped songs",
             value="most_skipped_songs",
+        ),
+        questionary.Choice(
+            title="Summary Statistics",
+            value="summary_statistics",
         ),
         questionary.Choice(
             title="Back",
@@ -57,6 +65,9 @@ def history_menu(options):
 
         if util == "most_skipped_songs":
             most_skipped_song_command(filtered_history, options)
+
+        if util == "summary_statistics":
+            summary_statistics_command(filtered_history, options)
 
 
 def artist_distribution_command(history, options):
@@ -101,3 +112,40 @@ def most_skipped_song_command(history, options):
             f"{item[1]['skip_rate']:.1%}"
         ),
     )
+
+
+def summary_statistics_command(history, options):
+    if not history:
+        console.print("[yellow]No listening history available.[/yellow]")
+        return
+
+    total_ms = total_listening(history, ListeningMetric.TIME)
+    total_hours = total_ms / 3_600_000
+
+    dates = [
+        datetime.fromisoformat(record["ts"].replace("Z", "+00:00")).date()
+        for record in history
+    ]
+
+    start_date = min(dates)
+    end_date = max(dates)
+    num_days = (end_date - start_date).days + 1
+    avg_hours = total_hours / num_days
+
+    console.print("\n[bold]Listening Summary[/bold]")
+    console.print(
+        f"[dim]Covering {start_date:%B %d, %Y} - "
+        f"{end_date:%B %d, %Y} ({num_days:,} days)[/dim]\n"
+    )
+
+    console.print("\n[bold]Listening Summary[/bold]\n")
+
+    console.print(f"Total listening time:       {total_hours:,.1f} hours")
+    console.print(f"Average listening per day:  {avg_hours:.2f} hours")
+
+    for metric in options.metrics:
+        diversity = diversity_index(history, metric)
+        obsessiveness = obsessiveness_index(history, metric)
+        console.print(f"\n[bold]{metric.value.title()}[/bold]")
+        console.print(f"Diversity index:           {diversity:.2f}")
+        console.print(f"Obsessiveness index:       {obsessiveness:.2f}")
