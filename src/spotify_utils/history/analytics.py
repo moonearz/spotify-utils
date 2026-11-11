@@ -136,17 +136,32 @@ def total_listening(history, metric):
     return total
 
 
+def entropy(counts):
+    total = sum(counts.values())
+
+    if total == 0.0:
+        return 0.0
+
+    entropy = 0.0
+    for value in counts.values():
+        if value <= 0:
+            continue
+
+        prob = value / total
+        entropy += -1 * prob * math.log2(prob)
+
+    return entropy
+
+
 # measured at the artist level
 def diversity_index(history, metric):
     counts = artist_counts(history, metric)
-    metric_total = sum(metric_value for metric_value in counts.values())
+    num_plays = total_listening(history, metric=ListeningMetric.PLAYS)
 
-    entropy = 0
-    for metric_value in counts.values():
-        prob = metric_value / metric_total
-        entropy += -1 * prob * math.log2(prob)
+    if num_plays <= 1:
+        return 0.0
 
-    return entropy / math.log2(metric_total)
+    return entropy(counts) / math.log2(num_plays)
 
 
 # measured at the song level
@@ -171,23 +186,26 @@ def obsessiveness_index(history, metric, window_size=DEFAULT_WINDOW_SIZE):
                 global_index += 1
                 continue
 
-            counter += 1
-            global_index += 1
-
             if metric == ListeningMetric.PLAYS:
                 window[track] += 1
             elif metric == ListeningMetric.TIME:
-                window[track] += record.get("ms_played", 0)
+                ms_played = record.get("ms_played", 0)
+                if ms_played <= 0:
+                    global_index += 1
+                    continue
+                window[track] += ms_played
+
+            counter += 1
+            global_index += 1
 
         # compute diversity
-        entropy = 0
-        metric_total = sum(value for value in window.values())
-        for value in window.values():
-            prob = value / metric_total
-            entropy += -1 * prob * math.log2(prob)
-
-        diversities.append(entropy / math.log2(metric_total))
+        entrop = entropy(window)
+        if counter == window_size:
+            diversities.append(entrop / math.log2(counter))
 
     # compute obsessiveness
+    if not diversities:
+        return 0.0
+
     average_diversity = sum(diversities) / len(diversities)
     return 1 - average_diversity
