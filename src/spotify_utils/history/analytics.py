@@ -34,6 +34,16 @@ def filter_history(history, start_date=None, end_date=None):
     ]
 
 
+def filter_valid_plays(history, min_ms_played=10000):
+    return [
+        record
+        for record in history
+        if record.get("master_metadata_track_name") is not None
+        and record.get("master_metadata_album_artist_name") is not None
+        and record.get("ms_played", 0) >= min_ms_played
+    ]
+
+
 def artist_counts(history, metric):
     counter = Counter()
 

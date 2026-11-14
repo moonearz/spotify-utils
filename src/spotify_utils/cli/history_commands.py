@@ -9,6 +9,7 @@ from spotify_utils.history.analytics import (
     artist_distribution,
     diversity_index,
     filter_history,
+    filter_valid_plays,
     load_history,
     most_played_artists,
     most_skipped_songs,
@@ -138,14 +139,14 @@ def summary_statistics_command(history, options):
         f"{end_date:%B %d, %Y} ({num_days:,} days)[/dim]\n"
     )
 
-    console.print("\n[bold]Listening Summary[/bold]\n")
-
     console.print(f"Total listening time:       {total_hours:,.1f} hours")
     console.print(f"Average listening per day:  {avg_hours:.2f} hours")
 
+    strict_history = filter_valid_plays(history)
+
     for metric in options.metrics:
-        diversity = diversity_index(history, metric)
-        obsessiveness = obsessiveness_index(history, metric)
+        diversity = diversity_index(strict_history, metric)
+        obsessiveness = obsessiveness_index(strict_history, metric)
         console.print(f"\n[bold]{metric.value.title()}[/bold]")
         console.print(f"Diversity index:           {diversity:.2f}")
         console.print(f"Obsessiveness index:       {obsessiveness:.2f}")
