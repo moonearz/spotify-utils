@@ -7,6 +7,7 @@ from rich.console import Console
 from spotify_utils.cli.pagination import paginate
 from spotify_utils.history.analytics import (
     artist_distribution,
+    discovery_rate,
     diversity_index,
     filter_history,
     filter_valid_plays,
@@ -19,7 +20,11 @@ from spotify_utils.history.analytics import (
 from spotify_utils.settings import (
     ListeningMetric,
 )
-from spotify_utils.visualization import plot_artist_distribution
+from spotify_utils.visualization import (
+    plot_artist_distribution,
+    plot_discovery_counts,
+    plot_discovery_rate,
+)
 
 console = Console()
 
@@ -44,6 +49,7 @@ def history_menu(options):
             title="Summary Statistics",
             value="summary_statistics",
         ),
+        questionary.Choice(title="Discovery Statistics", value="discovery_statistics"),
         questionary.Choice(
             title="Back",
             value="back",
@@ -69,6 +75,9 @@ def history_menu(options):
 
         if util == "summary_statistics":
             summary_statistics_command(filtered_history, options)
+
+        if util == "discovery_statistics":
+            discovery_rate_command(filtered_history)
 
 
 def artist_distribution_command(history, options):
@@ -150,3 +159,9 @@ def summary_statistics_command(history, options):
         console.print(f"\n[bold]{metric.value.title()}[/bold]")
         console.print(f"Diversity index:           {diversity:.2f}")
         console.print(f"Obsessiveness index:       {obsessiveness:.2f}")
+
+
+def discovery_rate_command(history):
+    monthly_data = discovery_rate(history)
+    plot_discovery_rate(monthly_data)
+    plot_discovery_counts(monthly_data)

@@ -1,6 +1,6 @@
 import json
 import math
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import date
 
 from spotify_utils.config import (
@@ -35,6 +35,7 @@ def filter_history(history, start_date=None, end_date=None):
 
 
 def filter_valid_plays(history, min_ms_played=10000):
+    history = sorted(history, key=lambda record: record["ts"])
     return [
         record
         for record in history
@@ -219,3 +220,51 @@ def obsessiveness_index(history, metric, window_size=DEFAULT_WINDOW_SIZE):
 
     average_diversity = sum(diversities) / len(diversities)
     return 1 - average_diversity
+
+
+def discovery_rate(history):
+    seen_songs = set()
+    seen_artists = set()
+
+    monthly_stats = defaultdict(
+        lambda: {
+            "total_plays": 0,
+            "new_songs": 0,
+            "new_artists": 0,
+        }
+    )
+
+    history = filter_valid_plays(history)
+
+    for record in history:
+        artist = record.get("master_metadata_album_artist_name")
+        song = record.get("master_metadata_track_name")
+
+        if artist is None or song is None:
+            continue
+
+        month = record["ts"][:7]
+        stats = monthly_stats[month]
+
+        stats["total_plays"] += 1
+        track = normalize_track((song, artist))
+
+        if track not in seen_songs:
+            stats["new_songs"] += 1
+            seen_songs.add(track)
+
+        if artist not in seen_artists:
+            stats["new_artists"] += 1
+            seen_artists.add(artist)
+
+    return [
+        {
+            "month": month,
+            "total_plays": stats["total_plays"],
+            "new_songs": stats["new_songs"],
+            "new_artists": stats["new_artists"],
+            "song_rate": stats["new_songs"] / stats["total_plays"],
+            "artist_rate": stats["new_artists"] / stats["total_plays"],
+        }
+        for month, stats in sorted(monthly_stats.items())
+    ]
